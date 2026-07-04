@@ -1,0 +1,77 @@
+import streamlit as st
+import pandas as pd
+import pickle
+
+# -------------------------------
+# Load Model
+# -------------------------------
+with open("activity_model.pkl", "rb") as file:
+    model = pickle.load(file)
+
+with open("label_encoder.pkl", "rb") as file:
+    label_encoder = pickle.load(file)
+
+# -------------------------------
+# Page Configuration
+# -------------------------------
+st.set_page_config(
+    page_title="Human Activity Recognition",
+    page_icon="🏃",
+    layout="wide"
+)
+
+st.title("🏃 Human Activity Recognition System")
+st.write("Predict human activity using Machine Learning.")
+
+st.markdown("---")
+
+# -------------------------------
+# Upload CSV File
+# -------------------------------
+uploaded_file = st.file_uploader(
+    "Upload a CSV file",
+    type=["csv"]
+)
+
+if uploaded_file is not None:
+
+    try:
+        df = pd.read_csv(uploaded_file)
+
+        st.subheader("Uploaded Dataset")
+        st.dataframe(df.head())
+
+        # Remove target column if present
+        if "Activity" in df.columns:
+            df = df.drop(columns=["Activity"])
+
+        # Remove subject column if present
+        if "subject" in df.columns:
+            df = df.drop(columns=["subject"])
+
+        # Prediction
+        prediction = model.predict(df)
+
+        predicted_activity = label_encoder.inverse_transform(prediction)
+
+        result = pd.DataFrame({
+            "Predicted Activity": predicted_activity
+        })
+
+        st.subheader("Prediction Results")
+        st.dataframe(result)
+
+        csv = result.to_csv(index=False).encode("utf-8")
+
+        st.download_button(
+            "Download Predictions",
+            csv,
+            "predictions.csv",
+            "text/csv"
+        )
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+
+else:
+    st.info("Please upload a CSV file.")
