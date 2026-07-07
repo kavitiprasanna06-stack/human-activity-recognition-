@@ -5,7 +5,7 @@ import pickle
 # -------------------------------
 # Load Model
 # -------------------------------
-with open("activity_model.pkl", "rb") as file:
+with open("har_model.pkl", "rb") as file:
     model = pickle.load(file)
 
 with open("label_encoder.pkl", "rb") as file:
