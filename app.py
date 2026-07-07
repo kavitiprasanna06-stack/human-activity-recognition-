@@ -3,13 +3,13 @@ import pandas as pd
 import pickle
 
 # -------------------------------
-# Load Model
+# Load Combined Model
 # -------------------------------
 with open("har_model.pkl", "rb") as file:
-    model = pickle.load(file)
+    model_data = pickle.load(file)
 
-with open("label_encoder.pkl", "rb") as file:
-    label_encoder = pickle.load(file)
+model = model_data["model"]
+label_encoder = model_data["label_encoder"]
 
 # -------------------------------
 # Page Configuration
@@ -25,13 +25,7 @@ st.write("Predict human activity using Machine Learning.")
 
 st.markdown("---")
 
-# -------------------------------
-# Upload CSV File
-# -------------------------------
-uploaded_file = st.file_uploader(
-    "Upload a CSV file",
-    type=["csv"]
-)
+uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 
 if uploaded_file is not None:
 
@@ -41,15 +35,14 @@ if uploaded_file is not None:
         st.subheader("Uploaded Dataset")
         st.dataframe(df.head())
 
-        # Remove target column if present
+        # Remove non-feature columns if present
         if "Activity" in df.columns:
             df = df.drop(columns=["Activity"])
 
-        # Remove subject column if present
         if "subject" in df.columns:
             df = df.drop(columns=["subject"])
 
-        # Prediction
+        # Predict
         prediction = model.predict(df)
 
         predicted_activity = label_encoder.inverse_transform(prediction)
@@ -64,10 +57,10 @@ if uploaded_file is not None:
         csv = result.to_csv(index=False).encode("utf-8")
 
         st.download_button(
-            "Download Predictions",
-            csv,
-            "predictions.csv",
-            "text/csv"
+            label="Download Predictions",
+            data=csv,
+            file_name="predictions.csv",
+            mime="text/csv"
         )
 
     except Exception as e:
